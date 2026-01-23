@@ -45,6 +45,7 @@ Flask-Login==0.6.3
 Flask-SQLAlchemy==3.1.1
 frozenlist==1.8.0
 greenlet==3.2.4
+gunicorn==24.0.0
 h11==0.16.0
 httpcore==1.0.9
 httpx==0.28.1
