@@ -9,6 +9,8 @@ from routes import auth, billing, reports, ai_module, settings
 from routes.product import bp as product_bp
 from routes.dashboard import dashboard_bp
 
+from flask import redirect, url_for
+
 import os
 import sys
 
@@ -113,3 +115,4 @@ def settings_home():
 # ==========================
 if __name__ == "__main__":
     app.run(debug=False)
+
