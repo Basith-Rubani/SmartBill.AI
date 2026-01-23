@@ -1,0 +1,309 @@
+{% extends "base.html" %}{% block title %} Profile | SmartBill.AI {% endblock %}
+{% block content %}
+
+<div
+  style="
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+    margin-bottom: 40px;
+  "
+>
+  <div
+    class="card"
+    style="
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      background-color: #fff;
+    "
+  >
+    <h2 style="margin-bottom: 25px; text-align: center; color: #0b2565">
+      👤 Profile
+    </h2>
+
+    <form id="profileForm" style="display: grid; gap: 20px">
+      <!-- Full Name -->
+      <div class="input-group">
+        <span class="input-icon">📝</span>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          value="{{ current_user.name }}"
+          placeholder="Full Name"
+          required
+        />
+      </div>
+
+      <!-- Email (read-only) -->
+      <div class="input-group">
+        <span class="input-icon">📧</span>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          value="{{ current_user.email }}"
+          readonly
+        />
+      </div>
+
+      <!-- Phone & Tax ID -->
+      <div style="display: flex; gap: 15px; flex-wrap: wrap">
+        <div class="input-group" style="flex: 1">
+          <span class="input-icon">📞</span>
+          <input
+            type="tel"
+            id="phone"
+            name="phone"
+            value="{{ current_user.phone }}"
+            placeholder="Phone Number"
+          />
+        </div>
+        <div class="input-group" style="flex: 1">
+          <span class="input-icon">🏷️</span>
+          <input
+            type="text"
+            id="tax_id"
+            name="tax_id"
+            value="{{ current_user.tax_id }}"
+            placeholder="Tax ID / VAT Number"
+          />
+        </div>
+      </div>
+
+      <!-- Company Name -->
+      <div class="input-group">
+        <span class="input-icon">🏢</span>
+        <input
+          type="text"
+          id="company"
+          name="company"
+          value="{{ current_user.company }}"
+          placeholder="Company Name"
+        />
+      </div>
+
+      <!-- Address -->
+      <div class="input-group">
+        <span class="input-icon">📍</span>
+        <input
+          type="text"
+          id="address"
+          name="address"
+          value="{{ current_user.address }}"
+          placeholder="Street, Building, Suite..."
+        />
+      </div>
+
+      <!-- City / State / ZIP -->
+      <div style="display: flex; gap: 15px; flex-wrap: wrap">
+        <input
+          type="text"
+          id="city"
+          name="city"
+          value="{{ current_user.city }}"
+          placeholder="City"
+          class="input-field"
+          style="flex: 1"
+        />
+        <input
+          type="text"
+          id="state"
+          name="state"
+          value="{{ current_user.state }}"
+          placeholder="State"
+          class="input-field"
+          style="flex: 1"
+        />
+        <input
+          type="text"
+          id="zip"
+          name="zip"
+          value="{{ current_user.zip }}"
+          placeholder="ZIP"
+          class="input-field"
+          style="flex: 1"
+        />
+      </div>
+
+      <!-- Save Profile Button -->
+      <div style="text-align: center; margin-top: 10px">
+        <button type="submit" class="btn btn-save">Save Changes</button>
+      </div>
+    </form>
+
+    <!-- Change Password Section -->
+    <hr style="margin: 35px 0; border-color: #ddd" />
+    <h3 style="margin-bottom: 20px; color: #0b2565">🔒 Change Password</h3>
+
+    <form id="changePasswordForm" style="display: grid; gap: 20px">
+      <!-- Current Password -->
+      <div class="input-group">
+        <span class="input-icon">🔑</span>
+        <input
+          type="password"
+          id="current_password"
+          name="current_password"
+          placeholder="Current Password"
+          required
+        />
+      </div>
+
+      <!-- New Password -->
+      <div class="input-group">
+        <span class="input-icon">🆕</span>
+        <input
+          type="password"
+          id="new_password"
+          name="new_password"
+          placeholder="New Password"
+          required
+        />
+      </div>
+
+      <!-- Confirm New Password -->
+      <div class="input-group">
+        <span class="input-icon">✅</span>
+        <input
+          type="password"
+          id="confirm_new_password"
+          name="confirm_new_password"
+          placeholder="Confirm New Password"
+          required
+        />
+      </div>
+
+      <!-- Change Password Button -->
+      <div style="text-align: center; margin-top: 10px">
+        <button type="submit" class="btn btn-password">Update Password</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Styles for input fields and hover/focus glow -->
+<style>
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .input-group .input-icon {
+    font-size: 20px;
+    color: #0b2565;
+  }
+
+  .input-group input {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1.5px solid #0b2565;
+    flex: 1;
+    outline: none;
+    transition: all 0.3s ease;
+  }
+
+  .input-group input:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
+  }
+
+  .input-group input:hover:not(:disabled) {
+    border-color: #40a9ff;
+  }
+
+  input[readonly] {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  .btn-save {
+    padding: 12px 25px;
+    border-radius: 8px;
+    background-color: #0b2565;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-save:hover {
+    background-color: #0d2a82;
+  }
+
+  .btn-password {
+    padding: 12px 25px;
+    border-radius: 8px;
+    background-color: #ff4d4f;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+
+  .btn-password:hover {
+    background-color: #e03a3f;
+  }
+</style>
+
+<script>
+  // Update Profile
+  document
+    .getElementById("profileForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      try {
+        const res = await fetch("/settings/update-profile", {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json();
+        alert(
+          data.message ||
+            (res.ok
+              ? "Profile updated successfully!"
+              : "Failed to update profile."),
+        );
+      } catch (err) {
+        alert("An error occurred. Please try again.");
+      }
+    });
+
+  // Change Password
+  document
+    .getElementById("changePasswordForm")
+    .addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+
+      if (form.get("new_password") !== form.get("confirm_new_password")) {
+        alert("New passwords do not match!");
+        return;
+      }
+
+      try {
+        const res = await fetch("/settings/change-password", {
+          method: "POST",
+          body: form,
+        });
+        const data = await res.json();
+        alert(
+          data.message ||
+            (res.ok
+              ? "Password updated successfully!"
+              : "Failed to update password."),
+        );
+        if (res.ok) e.target.reset();
+      } catch (err) {
+        alert("An error occurred. Please try again.");
+      }
+    });
+</script>
+
+{% endblock %}

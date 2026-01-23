@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}SmartBill.AI{% endblock %}</title>
+
+    <!-- Dynamic favicon -->
+    {% block favicon %}
+    <link
+      rel="icon"
+      href="data:image/svg+xml,
+    <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+      <text y='0.9em' font-size='90'>💡</text>
+    </svg>"
+    />
+    {% endblock %}
+
+    <!-- Main stylesheet -->
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+
+    <!-- Google Font: Poppins -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+
+  <body>
+    <!-- Decorative background -->
+    <div class="ai-particles" aria-hidden="true"></div>
+
+    <!-- ============================= -->
+    <!-- Top Navigation -->
+    <!-- ============================= -->
+    <header class="top-nav glass" role="banner">
+      <div class="nav-left">
+        <a class="logo" href="{{ url_for('dashboard_home') }}">
+          💡 SmartBill.AI
+        </a>
+      </div>
+
+      <nav class="nav-links" role="navigation" aria-label="Main navigation">
+        <a
+          href="{{ url_for('dashboard_home') }}"
+          class="{{ 'active' if request.path.startswith('/dashboard') or request.path.startswith('/ai') else '' }}"
+        >
+          Dashboard
+        </a>
+
+        <a
+          href="{{ url_for('billing.billing_home') }}"
+          class="{{ 'active' if request.path.startswith('/billing') else '' }}"
+        >
+          Billing
+        </a>
+
+        <a
+          href="{{ url_for('reports.reports_home') }}"
+          class="{{ 'active' if request.path.startswith('/reports') else '' }}"
+        >
+          Reports
+        </a>
+
+        <a
+          href="{{ url_for('ai_module.ai_dashboard') }}"
+          class="{{ 'active' if request.path.startswith('/ai') else '' }}"
+        >
+          AI Assistant
+        </a>
+
+        <a
+          href="{{ url_for('settings.settings_home') }}"
+          class="{{ 'active' if request.path.startswith('/settings') else '' }}"
+        >
+          Profile
+        </a>
+      </nav>
+
+      <div class="nav-right">
+        {% if current_user.is_authenticated %}
+        <div class="user-chip glass">
+          <span class="user-avatar" aria-hidden="true">👤</span>
+          <span class="user-name">{{ current_user.name }}</span>
+        </div>
+        <a href="{{ url_for('auth.logout') }}" class="btn-ghost"> Logout </a>
+        {% else %}
+        <a href="{{ url_for('auth.login_page') }}" class="btn-ghost"> Login </a>
+        {% endif %}
+      </div>
+    </header>
+
+    <!-- ============================= -->
+    <!-- Flash Messages -->
+    <!-- ============================= -->
+    {% with messages = get_flashed_messages(with_categories=true) %} {% if
+    messages %}
+    <div class="container mt-3">
+      {% for category, message in messages %}
+      <div class="flash flash-{{ category }}" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" aria-label="Close"></button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %} {% endwith %}
+
+    <!-- ============================= -->
+    <!-- Page Content -->
+    <!-- ============================= -->
+    <main class="page-wrap" role="main">
+      <div class="container">{% block content %}{% endblock %}</div>
+    </main>
+
+    <!-- ============================= -->
+    <!-- Small UI Script -->
+    <!-- ============================= -->
+    <script>
+      window.addEventListener("scroll", () => {
+        const header = document.querySelector(".top-nav");
+        if (header) {
+          header.classList.toggle("scrolled", window.scrollY > 10);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,181 @@
+{% extends "base.html" %} {% block title %}Dashboard | SmartBill.AI{% endblock
+%} {% block content %}
+
+<!-- ================= KPI CARDS ================= -->
+<div class="card-grid kpi-grid">
+  <div class="card kpi-card">
+    <div class="kpi-header">
+      <span class="kpi-icon">💰</span>
+      <h3>Today Sales</h3>
+    </div>
+    <div class="kpi-value" id="todaySales">₹0</div>
+  </div>
+
+  <div class="card kpi-card">
+    <div class="kpi-header">
+      <span class="kpi-icon">📄</span>
+      <h3>Bills Today</h3>
+    </div>
+    <div class="kpi-value" id="billsToday">0</div>
+  </div>
+
+  <div class="card kpi-card">
+    <div class="kpi-header">
+      <span class="kpi-icon">📦</span>
+      <h3>Products In Stock</h3>
+    </div>
+    <div class="kpi-value" id="productsStock">0</div>
+  </div>
+
+  <div class="card kpi-card">
+    <div class="kpi-header">
+      <span class="kpi-icon">⚠️</span>
+      <h3>Low Stock Items</h3>
+    </div>
+    <div class="kpi-value" id="lowStockCount">0</div>
+  </div>
+</div>
+
+<!-- ================= PRODUCT SUMMARY ================= -->
+<div
+  class="card"
+  style="
+    background: linear-gradient(135deg, #6ee7b7, #3b82f6);
+    color: white;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 16px 0;
+  "
+>
+  <h3>🛒 Product Summary</h3>
+
+  <div
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <div>
+      <p>Total Products: <strong id="summaryTotalProducts">0</strong></p>
+      <p>Low Stock Items: <strong id="summaryLowStock">0</strong></p>
+    </div>
+
+    <a
+      href="{{ url_for('product.page_products') }}"
+      style="
+        background: #fff;
+        color: #2563eb;
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+      "
+    >
+      Manage Products →
+    </a>
+  </div>
+</div>
+
+<!-- ================= LOW STOCK ALERT ================= -->
+<div class="card low-stock-card">
+  <h3>⚠️ Low Stock Alerts</h3>
+  <ul id="lowStockList" class="low-stock-list"></ul>
+</div>
+
+<!-- ================= SALES CHART ================= -->
+<div class="card glass">
+  <h3>Sales Trend (Last 7 Days)</h3>
+  <canvas id="salesTrend" height="120"></canvas>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  /* ================= DASHBOARD METRICS ================= */
+
+  function byId(id) {
+    return document.getElementById(id);
+  }
+
+  async function loadDashboardMetrics() {
+    try {
+      const res = await fetch("/dashboard/api/metrics");
+      const data = await res.json();
+
+      byId("todaySales").innerText = "₹" + data.today_sales.toFixed(2);
+
+      byId("billsToday").innerText = data.bills_today;
+      byId("productsStock").innerText = data.total_products;
+      byId("lowStockCount").innerText = data.low_stock;
+      byId("summaryTotalProducts").innerText = data.total_products;
+      byId("summaryLowStock").innerText = data.low_stock;
+
+      if (data.low_stock > 0) {
+        byId("lowStockCount").style.color = "#ef4444";
+        byId("summaryLowStock").style.color = "#ef4444";
+      }
+
+      const list = byId("lowStockList");
+      list.innerHTML = "";
+
+      if (data.low_stock_items.length === 0) {
+        list.innerHTML =
+          '<li style="color:#16a34a">All products sufficiently stocked ✅</li>';
+        return;
+      }
+
+      data.low_stock_items.forEach((p) => {
+        const li = document.createElement("li");
+        li.className = "low-stock-item";
+        li.innerHTML = `
+          <span class="low-stock-name">${p.name}</span>
+          <span class="low-stock-badge">Stock: ${p.stock}</span>
+        `;
+        list.appendChild(li);
+      });
+    } catch (err) {
+      console.error("Dashboard metrics failed:", err);
+    }
+  }
+
+  /* ================= SALES CHART ================= */
+
+  async function loadSalesChart() {
+    try {
+      const res = await fetch("/reports/data");
+      const data = await res.json();
+
+      const ctx = byId("salesTrend").getContext("2d");
+
+      new Chart(ctx, {
+        type: "line",
+        data: {
+          labels: data.daily_labels,
+          datasets: [
+            {
+              label: "Sales (₹)",
+              data: data.daily_revenue,
+              fill: true,
+              tension: 0.35,
+              backgroundColor: "rgba(59,130,246,0.15)",
+              borderColor: "#3b82f6",
+              borderWidth: 2,
+              pointRadius: 3,
+            },
+          ],
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } },
+        },
+      });
+    } catch (err) {
+      console.error("Chart load failed:", err);
+    }
+  }
+
+  /* ================= INIT ================= */
+
+  loadDashboardMetrics();
+  loadSalesChart();
+  setInterval(loadDashboardMetrics, 5000);
+</script>
+
+{% endblock %}

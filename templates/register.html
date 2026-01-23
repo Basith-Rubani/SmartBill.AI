@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Register | SmartBill.AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,
+  <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+    <text y='0.9em' font-size='90'>💡</text>
+  </svg>"
+    />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      /* ===============================
+         Base Styles
+      =============================== */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: "Poppins", sans-serif;
+      }
+
+      body {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 60px 0;
+        background:
+          linear-gradient(rgba(0, 0, 0, 0.45), rgba(0, 0, 0, 0.45)),
+          url("https://images.unsplash.com/photo-1677442136019-21780ecad995")
+            center / cover no-repeat;
+        overflow-x: hidden;
+        position: relative;
+      }
+
+      /* ===============================
+         Flash Messages
+      =============================== */
+      .flash-container {
+        position: absolute;
+        top: 20px;
+        width: 90%;
+        max-width: 360px;
+        z-index: 3;
+      }
+      .flash {
+        padding: 14px 16px;
+        border-radius: 10px;
+        margin-bottom: 10px;
+        color: #fff;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+        animation: slideDown 0.4s ease;
+      }
+      .flash-success {
+        background: rgba(46, 213, 115, 0.9);
+      }
+      .flash-danger {
+        background: rgba(255, 71, 87, 0.9);
+      }
+      .flash-warning {
+        background: rgba(255, 177, 66, 0.9);
+      }
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-15px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* ===============================
+         Register Card
+      =============================== */
+      .register-card {
+        position: relative;
+        z-index: 2;
+        width: 390px;
+        padding: 2.6rem;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 25px 70px rgba(0, 0, 0, 0.6);
+        color: #fff;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        animation: fadeUp 0.8s ease;
+        transition:
+          transform 0.4s ease,
+          box-shadow 0.4s ease;
+      }
+
+      .register-card:hover {
+        transform: translateY(-6px) scale(1.01);
+        box-shadow: 0 30px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      @keyframes fadeUp {
+        from {
+          opacity: 0;
+          transform: translateY(25px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      /* Logo */
+      .logo {
+        text-align: center;
+        font-size: 2rem;
+        font-weight: 600;
+        margin-bottom: 0.6rem;
+        animation: glow 2s ease-in-out infinite alternate;
+      }
+
+      @keyframes glow {
+        from {
+          text-shadow:
+            0 0 8px #ff6ec4,
+            0 0 12px #4facfe;
+        }
+        to {
+          text-shadow:
+            0 0 16px #6366f1,
+            0 0 24px #ff6ec4;
+        }
+      }
+
+      .subtitle {
+        text-align: center;
+        font-size: 0.85rem;
+        color: #ccc;
+        margin-bottom: 1.6rem;
+      }
+
+      h2 {
+        text-align: center;
+        font-weight: 500;
+        margin-bottom: 1.4rem;
+      }
+
+      /* ===============================
+         Inputs
+      =============================== */
+      .input-group {
+        position: relative;
+        margin-bottom: 1.3rem;
+      }
+
+      .input-group input {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.25);
+        background: rgba(255, 255, 255, 0.08);
+        color: #fff;
+        outline: none;
+        transition:
+          border-color 0.3s ease,
+          box-shadow 0.3s ease,
+          transform 0.25s ease,
+          background 0.3s ease;
+      }
+
+      .input-group label {
+        position: absolute;
+        top: 50%;
+        left: 14px;
+        transform: translateY(-50%);
+        font-size: 0.8rem;
+        color: #ccc;
+        pointer-events: none;
+        transition: 0.25s;
+      }
+
+      .input-group input:focus + label,
+      .input-group input:not(:placeholder-shown) + label {
+        top: -8px;
+        background: rgba(10, 15, 30, 0.9);
+        padding: 0 6px;
+        font-size: 0.7rem;
+        color: #4facfe;
+      }
+
+      .input-group input:hover {
+        background: rgba(255, 255, 255, 0.12);
+        transform: translateY(-1px);
+      }
+
+      .input-group input:focus {
+        transform: translateY(-2px);
+        border-color: #4facfe;
+        box-shadow:
+          0 0 0 2px rgba(79, 172, 254, 0.25),
+          0 0 18px rgba(79, 172, 254, 0.35);
+      }
+
+      /* ===============================
+         Button & Links
+      =============================== */
+      .btn {
+        width: 100%;
+        padding: 1rem;
+        border-radius: 14px;
+        border: none;
+        background: linear-gradient(135deg, #4facfe, #00f2fe);
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.35s;
+      }
+
+      .btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 15px 40px rgba(79, 172, 254, 0.5);
+      }
+
+      .switch {
+        text-align: center;
+        margin-top: 1.3rem;
+        font-size: 0.85rem;
+      }
+
+      .switch a {
+        color: #4facfe;
+        text-decoration: none;
+        font-weight: 500;
+      }
+
+      /* ===============================
+         Floating Particles
+      =============================== */
+      .particles {
+        position: fixed;
+        inset: 0;
+        z-index: 0;
+        overflow: hidden;
+        pointer-events: none;
+      }
+
+      .particles span {
+        position: absolute;
+        width: 6px;
+        height: 6px;
+        background: rgba(255, 255, 255, 0.35);
+        border-radius: 50%;
+        animation: floatParticle linear infinite;
+        filter: blur(0.5px);
+      }
+
+      @keyframes floatParticle {
+        from {
+          transform: translateY(100vh) scale(0.6);
+          opacity: 0;
+        }
+        10% {
+          opacity: 0.6;
+        }
+        to {
+          transform: translateY(-10vh) scale(1);
+          opacity: 0;
+        }
+      }
+
+      @media (max-width: 480px) {
+        .register-card {
+          width: 92%;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="particles">
+      <span style="left: 10%; animation-duration: 18s"></span>
+      <span style="left: 20%; animation-duration: 22s"></span>
+      <span style="left: 30%; animation-duration: 20s"></span>
+      <span style="left: 45%; animation-duration: 26s"></span>
+      <span style="left: 60%; animation-duration: 24s"></span>
+      <span style="left: 75%; animation-duration: 19s"></span>
+      <span style="left: 90%; animation-duration: 28s"></span>
+    </div>
+
+    <div class="flash-container">
+      {% with messages = get_flashed_messages(with_categories=true) %} {% if
+      messages %} {% for category, message in messages %}
+      <div class="flash flash-{{ category }}">{{ message }}</div>
+      {% endfor %} {% endif %} {% endwith %}
+    </div>
+
+    <div class="register-card">
+      <div class="logo">
+        💡 SmartBill.<span style="color: #818cf8">AI</span>
+      </div>
+      <div class="subtitle">AI-powered smart billing & automation</div>
+
+      <h2>Create your account</h2>
+
+      <form method="POST" action="{{ url_for('auth.register_page') }}">
+        <div class="input-group">
+          <input type="text" name="name" placeholder=" " required />
+          <label>Full Name</label>
+        </div>
+
+        <div class="input-group">
+          <input type="email" name="email" placeholder=" " required />
+          <label>Email Address</label>
+        </div>
+
+        <div class="input-group">
+          <input type="password" name="password" placeholder=" " required />
+          <label>Password</label>
+        </div>
+
+        <div class="input-group">
+          <input type="password" name="confirm" placeholder=" " required />
+          <label>Confirm Password</label>
+        </div>
+
+        <button type="submit" class="btn">Register</button>
+      </form>
+
+      <div class="switch">
+        Already have an account?
+        <a href="{{ url_for('auth.login_page') }}">Login</a>
+      </div>
+    </div>
+
+    <script>
+      setTimeout(() => {
+        document.querySelectorAll(".flash").forEach((f) => f.remove());
+      }, 3000);
+    </script>
+  </body>
+</html>

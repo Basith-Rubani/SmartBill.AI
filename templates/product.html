@@ -1,0 +1,205 @@
+{% extends "base.html" %} {% block title %} Manage Products | SmartBill.AI {%
+endblock %} {% block content %}
+
+<style>
+  /* ---------- Layout ---------- */
+  .products-wrap {
+    max-width: 1100px;
+    margin: 28px auto;
+  }
+
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 18px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    color: #111;
+  }
+
+  /* ---------- Top Bar ---------- */
+  .topbar {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  .search {
+    flex: 1;
+  }
+
+  input,
+  select {
+    padding: 9px 11px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+  }
+
+  .btn {
+    padding: 9px 14px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(90deg, #ff6ec4, #7873f5);
+    color: #fff;
+    font-weight: 500;
+  }
+
+  .btn.secondary {
+    background: #e5e7eb;
+    color: #111;
+  }
+
+  /* ---------- Table ---------- */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 12px;
+  }
+
+  th,
+  td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+  }
+
+  th {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    color: #666;
+  }
+
+  tr.low {
+    background: #fff7f6;
+    border-left: 4px solid #ff6b6b;
+  }
+
+  .actions button {
+    margin-right: 6px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    cursor: pointer;
+  }
+
+  /* ---------- Bulk Bar ---------- */
+  .bulk-bar {
+    display: none;
+    gap: 10px;
+    margin-bottom: 12px;
+    align-items: center;
+    background: #f9fafb;
+    padding: 10px;
+    border-radius: 10px;
+  }
+
+  .bulk-bar.active {
+    display: flex;
+  }
+
+  /* ---------- Modal ---------- */
+  .modal {
+    position: fixed;
+    inset: 0;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 200;
+  }
+
+  .modal.open {
+    display: flex;
+  }
+
+  .modal-card {
+    background: #fff;
+    padding: 18px;
+    border-radius: 12px;
+    width: 520px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+  }
+
+  .form-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .small {
+    width: 120px;
+  }
+</style>
+
+<div class="products-wrap">
+  <div class="card">
+    <!-- BULK ACTION BAR -->
+    <div id="bulkBar" class="bulk-bar">
+      <strong id="selectedCount">0 selected</strong>
+      <button id="bulkRestock" class="btn">+ Restock</button>
+      <button id="bulkDelete" class="btn secondary">Delete</button>
+    </div>
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <input id="searchInput" class="search" placeholder="Search products..." />
+
+      <select id="sortSelect">
+        <option value="name">Name ↑</option>
+        <option value="-name">Name ↓</option>
+        <option value="price">Price ↑</option>
+        <option value="-price">Price ↓</option>
+        <option value="stock">Stock ↑</option>
+        <option value="-stock">Stock ↓</option>
+      </select>
+
+      <button id="btnAdd" class="btn">+ Add Product</button>
+    </div>
+
+    <!-- PRODUCTS TABLE -->
+    <table id="productsTable">
+      <thead>
+        <tr>
+          <th><input type="checkbox" id="selectAll" /></th>
+          <th>ID</th>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Price</th>
+          <th>Stock</th>
+          <th>GST</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div id="modal" class="modal">
+  <div class="modal-card">
+    <h3 id="modalTitle">Add Product</h3>
+
+    <div class="form-row">
+      <input id="pName" placeholder="Product name" style="flex: 1" />
+      <input id="pCategory" placeholder="Category" class="small" />
+    </div>
+
+    <div class="form-row">
+      <input id="pPrice" placeholder="Price" class="small" />
+      <input id="pStock" placeholder="Stock" class="small" />
+      <input id="pGst" placeholder="GST %" class="small" />
+    </div>
+
+    <div style="display: flex; justify-content: flex-end; gap: 8px">
+      <button id="modalCancel" class="btn secondary">Cancel</button>
+      <button id="modalSave" class="btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script src="{{ url_for('static', filename='js/product.js') }}"></script>
+
+{% endblock %}

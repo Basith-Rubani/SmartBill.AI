@@ -1,0 +1,900 @@
+{% extends "base.html" %} {% block title %}Billing | SmartBill.AI{% endblock %}
+{% block content %}
+<style>
+  /* ===============================
+   BILLING UI — CRYSTAL AI THEME
+================================ */
+
+  .billing-area {
+    max-width: 1280px;
+    margin: auto;
+  }
+
+  /* GRID */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 22px;
+  }
+ 
+  /* MAIN CARD */
+  .card {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(14px);
+    border-radius: 18px;
+    padding: 22px;
+    overflow: visible;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    transition:
+      transform 0.25s ease,
+      box-shadow 0.25s ease;
+  }
+
+  
+  /* SEARCH BAR */
+  .search-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 14px;
+    position: relative;
+  }
+
+  /* ADD Button */
+  .add-btn {
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: none;
+    font-weight: 600;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    color: #fff;
+    cursor: pointer;
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .add-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    box-shadow: none;
+    transform: none;
+  }
+
+  /* AUTOCOMPLETE */
+  .suggestions {
+    position: absolute;
+    top: 52px;
+    left: 0;
+    right: 0;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: none;
+    z-index: 60;
+  }
+
+  .suggest-item {
+    padding: 10px 14px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+
+  .suggest-item:hover,
+  .suggest-item.active {
+    background: linear-gradient(90deg, #66a6ff, #89f7fe);
+    color: #fff;
+  }
+
+  /* HEADER BAR */
+  .header-row {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr 1fr 0.5fr;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 12px;
+    background: linear-gradient(90deg, #2575fc, #00c6ff);
+    color: #fff;
+    font-weight: 600;
+    margin-top: 14px;
+  }
+  
+  /* TABLE */
+  .items td {
+    padding: 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+ .qty-input {
+    width: 80px;
+    padding: 6px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+
+  .remove-btn {
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  border-radius: 6px;
+  line-height: 1;
+  cursor: pointer;
+  }
+
+  .billing-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 14px;
+    margin-top: 22px;
+    flex-wrap: wrap;
+  }
+
+   /* UNIFIED BUTTON STYLE (matches Save Bill) */
+  .billing-actions button {
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    color: #fff;
+    box-shadow: 0 10px 26px rgba(120, 115, 245, 0.45);
+    transition:
+      transform 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  /* TOTALS */
+  .totals {
+    display: flex;
+    justify-content: flex-end;
+    gap: 26px;
+    margin-top: 18px;
+    font-weight: 600;
+  }
+
+  .page-wrap {
+    padding: 26px 20px 60px;
+  }
+
+  .card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 30px 70px rgba(0, 0, 0, 0.22);
+  }
+
+  /* TITLE */
+  .card h3 {
+    margin-bottom: 14px;
+    font-weight: 600;
+    color: #0b2545;
+  }
+
+  #searchBox,
+  #qtyBox {
+    padding: 12px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    font-size: 0.95rem;
+  }
+
+  #searchBox {
+    flex: 1;
+  }
+
+  .add-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(120, 115, 245, 0.45);
+  }
+
+  /* BUTTONS */
+
+  .controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+    width: 100%;
+    margin-top: 18px;
+  }
+
+  .btn-outline {
+    padding: 10px 14px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+  }
+ 
+  .btn-primary {
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #ff6ec4, #7873f5);
+    color: #fff;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  /* RIGHT PANEL */
+  .side-card {
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(10px);
+    border-radius: 18px;
+    padding: 16px;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
+  }
+
+  .side-card h4 {
+    margin-bottom: 10px;
+    color: #2563eb;
+  }
+.recent-list {
+  list-style: none;   /* ✅ removes dots */
+  padding: 0;
+  margin: 0;
+}
+
+  .recent-list li {
+    padding: 8px 10px;
+    border-radius: 10px;
+    background: rgba(37, 99, 235, 0.08);
+    margin-bottom: 8px;
+  }
+
+  
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .controls {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .controls-left,
+    .controls-right {
+      width: 100%;
+      justify-content: space-between;
+    }
+    .grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .controls-left {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .controls-right {
+    margin-left: auto;
+  }
+  #saveBtn {
+    padding: 10px 18px;
+    font-size: 1rem;
+    box-shadow: 0 0 18px rgba(120, 115, 245, 0.6);
+  } 
+
+  .left-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .right-actions {
+    display: flex;
+  }
+
+
+  .billing-actions button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 14px 34px rgba(120, 115, 245, 0.6);
+  }
+
+  /* mobile */
+  @media (max-width: 768px) {
+    .billing-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .left-actions,
+    .right-actions {
+      width: 100%;
+      justify-content: space-between;
+    }
+  }
+  .suggest-item.active {
+  background: #2563eb;
+  color: white;
+}
+
+#searchBox,
+#qtyBox {
+  outline: none;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+#searchBox:focus,
+#qtyBox:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
+}
+#searchBox.valid,
+#qtyBox.valid {
+  border-color: #16a34a;
+  box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.22);
+}
+#searchBox.invalid,
+#qtyBox.invalid {
+  border-color: #ef4444;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.25);
+}
+
+.items-header,
+.items {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+}
+
+.items-header th,
+.items td {
+  padding: 10px;
+  text-align: left;
+}
+
+.recent-item a {
+  display: block;
+  padding: 9px 12px;
+  border-radius: 10px;
+  background: rgba(37, 99, 235, 0.08);
+  color: inherit;
+  text-decoration: none;
+  transition: all 0.18s ease;
+}
+
+.recent-item a:hover {
+  background: linear-gradient(90deg, #2563eb, #4f46e5);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.recent-main {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.92rem;
+}
+
+.recent-total {
+  font-weight: 700;
+}
+
+.recent-meta {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 4px;
+}
+
+
+.items-header th {
+  background: linear-gradient(90deg, #2575fc, #00c6ff);
+  color: #fff;
+  font-weight: 600;
+}
+
+/* Column widths */
+.items-header th:nth-child(1),
+.items td:nth-child(1) { width: 42%; }
+
+.items-header th:nth-child(2),
+.items td:nth-child(2) { width: 14%; text-align: center; }
+
+.items-header th:nth-child(3),
+.items td:nth-child(3) { width: 14%; }
+
+.items-header th:nth-child(4),
+.items td:nth-child(4) { width: 18%; }
+
+.items-header th:nth-child(5),
+.items td:nth-child(5) { width: 12%; text-align: center; }
+
+@keyframes pulseSave {
+  0% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 14px rgba(34, 197, 94, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+  }
+}
+
+.btn-save.pulse {
+  animation: pulseSave 1.5s infinite;
+}
+
+</style>
+
+<div class="billing-area">
+  <div class="grid">
+
+    <!-- MAIN -->
+    <div class="card billing-card">
+      <h3>🧾 Create New Bill</h3>
+
+      <div class="search-row">
+        <input id="searchBox" placeholder="Search product by name, category or id" autocomplete="off" />
+        <input id="qtyBox" type="number" min="1" value="1" />
+        <small id="stockHint" style="margin-left:6px;color:#ef4444"></small>
+        <button id="addBtn" class="add-btn" disabled>Add Item</button>
+        <div id="suggestions" class="suggestions"></div>
+      </div>
+
+      <select id="productSelect" hidden>
+        {% for p in products %}
+        <option value="{{p.id}}">{{p.name}}</option>
+        {% endfor %}
+      </select>
+
+      <table class="items-header">
+          <thead>
+            <tr>
+                <th>Product</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>GST</th>
+                <th>Remove</th>
+            </tr>
+          </thead>
+      </table>
+
+
+      <table class="items" id="itemsTable"><tbody></tbody></table>
+
+      <div class="totals">
+        <div>Subtotal: ₹<span id="subAmount">0.00</span></div>
+        <div>GST: ₹<span id="gstAmount">0.00</span></div>
+        <div>Total: ₹<span id="grandAmount">0.00</span></div>
+      </div>
+
+      <div style="margin-top:16px;">
+  <input
+    id="customerName"
+    placeholder="Customer name"
+    style="
+      width:100%;
+      padding:12px 14px;
+      border-radius:10px;
+      border:1px solid rgba(0,0,0,0.12);
+      font-size:0.95rem;
+    "
+  />
+</div>
+
+      <div class="billing-actions">
+        <div class="left-actions">
+          <button id="clearBtn">Clear Bill</button>
+          <button id="printBtn">Print</button>
+          <button id="downloadBtn">PDF</button>
+        </div>
+        <div class="right-actions">
+          <button id="saveBtn">Save Bill</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <aside class="side">
+      <div class="side-card">
+        <h4>🕒 Recent Bills</h4>
+        <ul class="recent-list">
+          {% for b in bills[:8] %}
+          <li class="recent-item">
+  <a href="{{ url_for('billing.view_bill', bill_id=b.id) }}" target="_blank">
+    <div class="recent-main">
+      <strong>{{ b.customer_name or "Walk-in Customer" }}</strong>
+      <span class="recent-total">₹{{ "%.2f"|format(b.total) }}</span>
+    </div>
+
+    <div class="recent-meta">
+      Bill #{{ b.id }} • {{ b.bill_date.strftime("%d %b %Y %I:%M %p") }}
+    </div>
+  </a>
+</li>
+
+
+          {% else %}
+          <li>No recent bills</li>
+          {% endfor %}
+        </ul>
+      </div>
+    </aside>
+
+
+  </div>
+</div>
+<script type="application/json" id="products-data">
+  {{ products | tojson }}
+</script>
+
+<script>
+/* ===============================
+   BILLING LOGIC — FINAL STABLE
+================================ */
+
+const PRODUCTS_DATA = JSON.parse(
+  document.getElementById("products-data").textContent
+);
+
+const productMap = {};
+PRODUCTS_DATA.forEach(p => productMap[p.id] = p);
+
+let items = [];
+let selectedProduct = null;
+let lastSavedBillId = null;
+let activeSuggestion = null;
+let suggestionIndex = -1;
+let filteredSuggestions = [];
+
+
+
+/* ELEMENTS */
+const searchBox = document.getElementById("searchBox");
+const qtyBox = document.getElementById("qtyBox");
+const addBtn = document.getElementById("addBtn");
+const stockHint = document.getElementById("stockHint");
+const suggestions = document.getElementById("suggestions");
+const itemsBody = document.querySelector("#itemsTable tbody");
+
+const subAmountEl = document.getElementById("subAmount");
+const gstAmountEl = document.getElementById("gstAmount");
+const grandAmountEl = document.getElementById("grandAmount");
+
+/* ===============================
+   ADD BUTTON STATE (CUMULATIVE)
+================================ */
+function updateAddButtonState() {
+  if (!selectedProduct) {
+    addBtn.disabled = true;
+    stockHint.textContent = "";
+    return;
+  }
+
+  const qty = Math.max(1, Number(qtyBox.value) || 1);
+  const stock = Number(selectedProduct.stock || 0);
+
+  const existing = items.find(i => i.id === selectedProduct.id);
+  const alreadyInBill = existing ? existing.quantity : 0;
+  const remaining = stock - alreadyInBill;
+
+  if (remaining <= 0 || qty > remaining) {
+    addBtn.disabled = true;
+    stockHint.textContent = `Only ${remaining} left`;
+    stockHint.style.color = "#ef4444";
+  } else {
+    addBtn.disabled = false;
+    stockHint.textContent = `Stock left: ${remaining}`;
+    stockHint.style.color = "#16a34a";
+  }
+
+  searchBox.classList.remove("valid", "invalid");
+qtyBox.classList.remove("valid", "invalid");
+
+if (addBtn.disabled) {
+  searchBox.classList.add("invalid");
+  qtyBox.classList.add("invalid");
+} else {
+  searchBox.classList.add("valid");
+  qtyBox.classList.add("valid");
+}
+
+}
+
+/* ===============================
+   SEARCH AUTOCOMPLETE
+================================ */
+searchBox.addEventListener("input", () => {
+  const q = searchBox.value.toLowerCase().trim();
+if (!q) {
+  suggestions.style.display = "none";
+  filteredSuggestions = [];
+  return;
+}
+
+filteredSuggestions = PRODUCTS_DATA.filter(p =>
+  p.name.toLowerCase().includes(q) ||
+  String(p.id) === q
+).slice(0, 8);
+
+suggestions.innerHTML = "";
+activeSuggestion = null;
+suggestionIndex = -1;
+
+filteredSuggestions.forEach((p, idx) => {
+  const div = document.createElement("div");
+  div.className = "suggest-item";
+  div.textContent = `${p.name} — ₹${p.price} (stock ${p.stock})`;
+
+      if (Number(p.stock) <= 0) {
+      div.style.opacity = "0.5";
+      div.style.cursor = "not-allowed";
+      }
+
+    div.onclick = () => selectSuggestion(p);
+
+
+      suggestions.appendChild(div);
+ 
+ if (idx === 0) {
+    activeSuggestion = p;
+    highlightSuggestion(0);
+  }
+    });
+
+suggestions.style.display = filteredSuggestions.length ? "block" : "none";
+
+});
+
+function selectSuggestion(product) {
+  if (Number(product.stock) <= 0) {
+    alert("Out of stock");
+    return;
+  }
+
+  filteredSuggestions = [];
+suggestionIndex = -1;
+
+  selectedProduct = product;
+  searchBox.value = product.name;
+  suggestions.style.display = "none";
+  activeSuggestion = null;
+  updateAddButtonState();
+}
+
+/* ===============================
+   ENTER KEY = ADD ITEM
+================================ */
+function handleEnterAdd(e) {
+  if (e.key === "Enter") {
+    e.preventDefault();
+    if (!addBtn.disabled) addBtn.click();
+  }
+}
+
+
+searchBox.addEventListener("keydown", handleEnterAdd);
+qtyBox.addEventListener("keydown", handleEnterAdd);
+qtyBox.addEventListener("input", updateAddButtonState);
+
+searchBox.addEventListener("keydown", e => {
+  if (!filteredSuggestions.length) return;
+
+  if (e.key === "ArrowDown") {
+    e.preventDefault();
+    const next = (suggestionIndex + 1) % filteredSuggestions.length;
+    highlightSuggestion(next);
+  }
+
+  if (e.key === "ArrowUp") {
+    e.preventDefault();
+    const prev =
+      (suggestionIndex - 1 + filteredSuggestions.length) %
+      filteredSuggestions.length;
+    highlightSuggestion(prev);
+  }
+
+  if (e.key === "ArrowRight" && activeSuggestion) {
+    e.preventDefault();
+    selectSuggestion(activeSuggestion);
+  }
+});
+
+
+/* ===============================
+   ADD ITEM (STOCK SAFE)
+================================ */
+addBtn.onclick = () => {
+  if (!selectedProduct) return;
+
+  const qty = Math.max(1, Number(qtyBox.value));
+  const stock = Number(selectedProduct.stock);
+
+  const existing = items.find(i => i.id === selectedProduct.id);
+  const alreadyInBill = existing ? existing.quantity : 0;
+
+  if (alreadyInBill + qty > stock) {
+    alert(`Only ${stock - alreadyInBill} left in stock`);
+    return;
+  }
+
+  if (existing) {
+    existing.quantity += qty;
+    existing.subtotal = existing.quantity * existing.price;
+  } else {
+    items.push({
+      id: selectedProduct.id,
+      name: selectedProduct.name,
+      price: Number(selectedProduct.price),
+      quantity: qty,
+      gst_rate: Number(selectedProduct.gst ?? 0.18),
+      subtotal: qty * Number(selectedProduct.price)
+    });
+  }
+
+  searchBox.value = "";
+  qtyBox.value = 1;
+  selectedProduct = null;
+  addBtn.disabled = true;
+  stockHint.textContent = "";
+
+  renderItems();
+};
+
+function highlightSuggestion(index) {
+  const nodes = suggestions.querySelectorAll(".suggest-item");
+  nodes.forEach((n, i) => {
+    n.classList.toggle("active", i === index);
+  });
+
+  suggestionIndex = index;
+  activeSuggestion = filteredSuggestions[index];
+}
+
+/* ===============================
+   RENDER TABLE
+================================ */
+function renderItems() {
+  itemsBody.innerHTML = "";
+  let subtotal = 0;
+  let gstTotal = 0;
+
+  items.forEach((it, idx) => {
+    subtotal += it.subtotal;
+    gstTotal += it.subtotal * it.gst_rate;
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${it.name}</td>
+      <td>
+        <input type="number"
+               class="qty-input"
+               min="1"
+               value="${it.quantity}"
+               data-idx="${idx}">
+      </td>
+      <td>₹${it.price.toFixed(2)}</td>
+      <td>₹${(it.subtotal * it.gst_rate).toFixed(2)}</td>
+      <td>
+        <button class="remove-btn" data-idx="${idx}">✕</button>
+      </td>
+    `;
+    itemsBody.appendChild(tr);
+  });
+
+  subAmountEl.textContent = subtotal.toFixed(2);
+  gstAmountEl.textContent = gstTotal.toFixed(2);
+  grandAmountEl.textContent = (subtotal + gstTotal).toFixed(2);
+
+  bindRowEvents();
+  
+}
+/* ===============================
+   ROW EVENTS (REMOVE + QTY SAFE)
+================================ */
+function bindRowEvents() {
+  document.querySelectorAll(".remove-btn").forEach(btn => {
+    btn.onclick = () => {
+      const idx = Number(btn.dataset.idx);
+      items.splice(idx, 1);
+      renderItems();
+    };
+  });
+
+  document.querySelectorAll(".qty-input").forEach(inp => {
+    inp.onchange = e => {
+      const idx = Number(e.target.dataset.idx);
+      const qty = Math.max(1, Number(e.target.value));
+      const product = productMap[items[idx].id];
+
+      if (qty > product.stock) {
+        alert(`Only ${product.stock} units available`);
+        e.target.value = items[idx].quantity;
+        return;
+      }
+
+      items[idx].quantity = qty;
+      items[idx].subtotal = qty * items[idx].price;
+      renderItems();
+    };
+  });
+}
+
+/* ===============================
+   CLEAR / SAVE / PRINT
+================================ */
+document.getElementById("clearBtn").onclick = () => {
+  if (!items.length) {
+    alert("Add items to bill first");
+    return;
+  }
+
+  if (!confirm("Clear current bill?")) return;
+
+  items = [];
+  lastSavedBillId = null;
+  renderItems();
+  document.getElementById("customerName").value = "";
+
+};
+
+
+document.getElementById("saveBtn").onclick = async () => {
+const customerName = document.getElementById("customerName").value.trim();
+
+if (!items.length) {
+  alert("Add items first");
+  return;
+}
+
+if (!customerName) {
+  alert("Enter customer name");
+  document.getElementById("customerName").focus();
+  return;
+}
+
+  const res = await fetch("{{ url_for('billing.create_bill') }}", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+  customer_name: customerName,
+  items
+})
+
+  });
+
+  const data = await res.json();
+  lastSavedBillId = data.bill_id;
+  alert(`Bill #${data.bill_id} saved`);
+  document.getElementById("customerName").value = "";
+
+};
+
+document.getElementById("printBtn").onclick = () => {
+  if (!lastSavedBillId) {
+    alert("Save bill first");
+    return;
+  }
+
+  window.open(
+    "{{ url_for('billing.print_bill', bill_id=0) }}".replace(
+      "0",
+      lastSavedBillId
+    ),
+    "_blank"
+  );
+};
+
+document.getElementById("downloadBtn").onclick = () => {
+  if (!lastSavedBillId) {
+    alert("Save bill first");
+    return;
+  }
+
+  const ok = confirm("Do you want to download the invoice PDF?");
+  if (!ok) return;
+
+  window.open(
+    "{{ url_for('billing.invoice_pdf', bill_id=0) }}".replace(
+      "0",
+      lastSavedBillId
+    ),
+    "_blank"
+  );
+};
+</script>
+ {% endblock %}
+
+</div>

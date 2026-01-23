@@ -1,0 +1,193 @@
+{% extends "base.html" %}{% block title %}AI Assistant | SmartBill.AI{% endblock
+%} {% block content %}
+
+<style>
+  .ai-card {
+    max-width: 900px;
+    margin: auto;
+  }
+
+  /* Reduced chat box height */
+  .chat-box {
+    height: 280px; /* was 380px, now smaller */
+    overflow-y: auto;
+    padding: 14px;
+    border-radius: 12px;
+    background: #f9fbff;
+    border: 1px solid rgba(0, 0, 0, 0.06);
+  }
+
+  .user-msg div {
+    background: linear-gradient(135deg, #4f8cff, #2563eb);
+    color: white;
+  }
+
+  .ai-msg div {
+    background: #e8fff1;
+    color: #0f5132;
+  }
+
+  .chat-bubble {
+    display: inline-block;
+    padding: 10px 14px;
+    border-radius: 14px;
+    max-width: 75%;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .prompt-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .prompt-chip {
+    background: linear-gradient(135deg, #ffffff, #eef4ff);
+    border: 1px solid #4f8cff;
+    color: #1d4ed8;
+    padding: 8px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 10px rgba(79, 140, 255, 0.15);
+  }
+
+  .prompt-chip:hover {
+    background: linear-gradient(135deg, #4f8cff, #2563eb);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+  }
+
+  .chat-input {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px; /* smaller gap so Ask button is closer */
+  }
+
+  .chat-input input {
+    flex: 1;
+    padding: 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    outline: none;
+  }
+
+  .chat-input button {
+    padding: 12px 20px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #4f8cff, #2563eb);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+  }
+
+  .chat-input button:hover {
+    opacity: 0.9;
+  }
+</style>
+
+<div class="ai-card card">
+  <h2>🤖 AI Business Assistant</h2>
+  <p style="color: #6b7280; margin-bottom: 14px">
+    Ask about sales, stock, trends, or predictions
+  </p>
+
+  <!-- 🔥 PROMPT CHIPS -->
+  <div class="prompt-chips">
+    <div class="prompt-chip" onclick="sendPrompt('Today’s sales')">
+      📅 Today’s Sales
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Total sales')">
+      💰 Total Sales
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Top selling product')">
+      🏆 Top Product
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Low stock items')">
+      ⚠️ Low Stock
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Average bill value')">
+      📊 Average Bill
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('Predict next month sales')">
+      📈 Predict Sales
+    </div>
+    <div class="prompt-chip" onclick="sendPrompt('What can you do?')">
+      ❓ Help
+    </div>
+  </div>
+
+  <div id="chatWindow" class="chat-box"></div>
+
+  <div class="chat-input">
+    <input
+      id="aiInput"
+      placeholder="Ask something about your business..."
+      autocomplete="off"
+    />
+    <button id="aiSend">Ask</button>
+  </div>
+</div>
+
+<script>
+  const chatWindow = document.getElementById("chatWindow");
+  const input = document.getElementById("aiInput");
+
+  function appendUser(text) {
+    chatWindow.innerHTML += `
+      <div class="user-msg" style="text-align:right; margin:8px 0;">
+        <div class="chat-bubble">${text}</div>
+      </div>`;
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  function appendAI(text) {
+    chatWindow.innerHTML += `
+      <div class="ai-msg" style="text-align:left; margin:8px 0;">
+        <div class="chat-bubble">${text}</div>
+      </div>`;
+    chatWindow.scrollTop = chatWindow.scrollHeight;
+  }
+
+  async function sendMessage(text) {
+    if (!text) return;
+    appendUser(text);
+    appendAI("🤖 Thinking...");
+    input.value = "";
+
+    try {
+      const res = await fetch("/ai/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+
+      const data = await res.json();
+      const last = chatWindow.querySelector(".ai-msg:last-child");
+      if (last) last.remove();
+
+      appendAI(data.response || "No response received.");
+    } catch {
+      appendAI("⚠️ AI service error.");
+    }
+  }
+
+  function sendPrompt(text) {
+    sendMessage(text);
+  }
+
+  document.getElementById("aiSend").addEventListener("click", () => {
+    sendMessage(input.value.trim());
+  });
+
+  input.addEventListener("keypress", (e) => {
+    if (e.key === "Enter") sendMessage(input.value.trim());
+  });
+</script>
+
+{% endblock %}

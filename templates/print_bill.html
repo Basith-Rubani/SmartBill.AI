@@ -1,0 +1,246 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Invoice | SmartBill.AI</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,
+        <svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'>
+        <text y='0.9em' font-size='90'>💡</text>
+        </svg>"
+    />
+
+    <style>
+      /* ===============================
+       PRINT INVOICE — SMARTBILL.AI
+    ================================ */
+
+      body {
+        font-family: "Segoe UI", system-ui, sans-serif;
+        background: #f1f5f9;
+        margin: 0;
+        padding: 30px;
+      }
+
+      .invoice {
+        max-width: 820px;
+        margin: auto;
+        background: white;
+        padding: 30px;
+        border-radius: 14px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12);
+      }
+
+      /* HEADER */
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 2px solid #2563eb;
+        padding-bottom: 14px;
+        margin-bottom: 18px;
+      }
+
+      .brand {
+        font-size: 1.6rem;
+        font-weight: 800;
+        color: #2563eb;
+      }
+
+      .brand span {
+        color: #9333ea;
+      }
+
+      .meta {
+        text-align: right;
+        font-size: 0.9rem;
+      }
+
+      /* CUSTOMER */
+      .customer {
+        margin-bottom: 18px;
+        font-size: 1rem;
+      }
+
+      .customer strong {
+        color: #0f172a;
+      }
+
+      /* TABLE */
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+      }
+
+      th {
+        background: #2563eb;
+        color: white;
+        padding: 10px;
+        text-align: left;
+        font-size: 0.9rem;
+      }
+
+      td {
+        padding: 10px;
+        border-bottom: 1px solid #e5e7eb;
+        font-size: 0.9rem;
+      }
+
+      td:nth-child(2),
+      td:nth-child(3),
+      td:nth-child(4) {
+        text-align: center;
+      }
+
+      td:last-child {
+        text-align: right;
+      }
+
+      /* TOTALS */
+      .totals {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .totals table {
+        width: 300px;
+      }
+
+      .totals td {
+        border: none;
+        padding: 6px 10px;
+      }
+
+      .totals tr:last-child td {
+        font-weight: 700;
+        font-size: 1.05rem;
+        border-top: 2px solid #2563eb;
+      }
+
+      /* FOOTER */
+      .footer {
+        margin-top: 24px;
+        text-align: center;
+        font-size: 0.85rem;
+        color: #475569;
+      }
+
+      /* ACTIONS */
+      .actions {
+        display: flex;
+        justify-content: center;
+        gap: 14px;
+        margin-top: 24px;
+      }
+
+      .actions button {
+        padding: 10px 18px;
+        border-radius: 10px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        background: linear-gradient(135deg, #6366f1, #9333ea);
+        color: white;
+      }
+
+      /* PRINT RULES */
+      @media print {
+        body {
+          background: white;
+          padding: 0;
+        }
+        .invoice {
+          box-shadow: none;
+          border-radius: 0;
+        }
+        .actions {
+          display: none;
+        }
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="invoice">
+      <!-- HEADER -->
+      <div class="header">
+        <div class="brand">SmartBill<span>.AI</span></div>
+        <div class="meta">
+          Bill #{{ bill.id }}<br />
+          {{ bill.bill_date.strftime("%d %b %Y, %I:%M %p") }}
+        </div>
+      </div>
+
+      <!-- CUSTOMER -->
+      <div class="customer">
+        <strong>Customer:</strong> {{ bill.customer_name }}
+      </div>
+
+      <!-- ITEMS -->
+      <table>
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th>Qty</th>
+            <th>Rate</th>
+            <th>GST</th>
+            <th>Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% set subtotal = 0 %} {% set gst_total = 0 %} {% for item in items %}
+          {% set rate = item.subtotal / item.quantity %} {% set gst = rate *
+          item.quantity * 0.18 %} {% set subtotal = subtotal + item.subtotal %}
+          {% set gst_total = gst_total + gst %}
+          <tr>
+            <td>{{ item.product.name }}</td>
+            <td>{{ item.quantity }}</td>
+            <td>₹{{ "%.2f"|format(rate) }}</td>
+            <td>₹{{ "%.2f"|format(gst) }}</td>
+            <td>₹{{ "%.2f"|format(item.subtotal + gst) }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <!-- TOTALS -->
+      <div class="totals">
+        <table>
+          <tr>
+            <td>Subtotal</td>
+            <td style="text-align: right">₹{{ "%.2f"|format(subtotal) }}</td>
+          </tr>
+          <tr>
+            <td>GST</td>
+            <td style="text-align: right">₹{{ "%.2f"|format(gst_total) }}</td>
+          </tr>
+          <tr>
+            <td>Total</td>
+            <td style="text-align: right">₹{{ "%.2f"|format(bill.total) }}</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- FOOTER -->
+      <div class="footer">
+        Thank you for shopping with <strong>SmartBill.AI</strong><br />
+        Powered by AI Billing System
+      </div>
+
+      <!-- ACTIONS -->
+      <div class="actions">
+        <button onclick="window.print()">🖨 Print</button>
+        <button onclick="window.close()">✖ Close</button>
+      </div>
+    </div>
+
+    <script>
+      // Auto open print dialog
+      window.onload = () => window.print();
+      window.onafterprint = () => window.close();
+    </script>
+  </body>
+</html>
