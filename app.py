@@ -59,7 +59,7 @@ app.register_blueprint(dashboard_bp)
 # ==========================
 @app.route("/")
 def index():
-    return jsonify({"message": "Billing software backend running"})
+    return redirect(url_for("auth.login_page"))
 
 
 @app.route("/init-db", methods=["GET"])
@@ -115,4 +115,5 @@ def settings_home():
 # ==========================
 if __name__ == "__main__":
     app.run(debug=False)
+
 
