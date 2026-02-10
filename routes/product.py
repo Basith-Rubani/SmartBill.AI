@@ -2,7 +2,7 @@ from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from models import db, Product
 
-bp = Blueprint("product", __name__, url_prefix="/products")  # ✅ fixed
+bp = Blueprint("product", __name__, url_prefix="/products")  
 
 
 # ---------- Helpers ----------
@@ -160,3 +160,4 @@ def api_delete(product_id):
     db.session.commit()
 
     return jsonify({"message": "Deleted"})
+
