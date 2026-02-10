@@ -169,7 +169,7 @@
     color: #0b2545;
   }
 
-  #searchBox,
+  #searchBox, #customerName, #customerPhone,
   #qtyBox {
     padding: 12px 14px;
     border-radius: 10px;
@@ -308,14 +308,14 @@
   color: white;
 }
 
-#searchBox,
+#searchBox, #customerName, #customerPhone,
 #qtyBox {
   outline: none;
   transition:
     border-color 0.2s ease,
     box-shadow 0.2s ease;
 }
-#searchBox:focus,
+#searchBox:focus, #customerName:focus, #customerPhone:focus,
 #qtyBox:focus {
   border-color: #6366f1;
   box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.25);
@@ -424,7 +424,6 @@
     <!-- MAIN -->
     <div class="card billing-card">
       <h3>🧾 Create New Bill</h3>
-
       <div class="search-row">
         <input id="searchBox" placeholder="Search product by name, category or id" autocomplete="off" />
         <input id="qtyBox" type="number" min="1" value="1" />
@@ -451,7 +450,6 @@
           </thead>
       </table>
 
-
       <table class="items" id="itemsTable"><tbody></tbody></table>
 
       <div class="totals">
@@ -460,19 +458,20 @@
         <div>Total: ₹<span id="grandAmount">0.00</span></div>
       </div>
 
-      <div style="margin-top:16px;">
+      <div style="margin-top:16px; display:grid; grid-template-columns:1fr 1fr; gap:12px;">
   <input
     id="customerName"
     placeholder="Customer name"
-    style="
-      width:100%;
-      padding:12px 14px;
-      border-radius:10px;
-      border:1px solid rgba(0,0,0,0.12);
-      font-size:0.95rem;
-    "
+    autocomplete="off"
   />
-</div>
+
+  <input
+    id="customerPhone"
+    placeholder="Phone number"
+    autocomplete="off"
+  />
+      </div>
+
 
       <div class="billing-actions">
         <div class="left-actions">
@@ -493,27 +492,23 @@
         <ul class="recent-list">
           {% for b in bills[:8] %}
           <li class="recent-item">
-  <a href="{{ url_for('billing.view_bill', bill_id=b.id) }}" target="_blank">
-    <div class="recent-main">
-      <strong>{{ b.customer_name or "Walk-in Customer" }}</strong>
-      <span class="recent-total">₹{{ "%.2f"|format(b.total) }}</span>
-    </div>
+            <a href="{{ url_for('billing.view_bill', bill_id=b.id) }}" target="_blank">
+              <div class="recent-main">
+                <strong>{{ b.customer_name or "Walk-in Customer" }}</strong>
+                <span class="recent-total">₹{{ "%.2f"|format(b.total) }}</span>
+              </div>
 
-    <div class="recent-meta">
-      Bill #{{ b.id }} • {{ b.bill_date.strftime("%d %b %Y %I:%M %p") }}
-    </div>
-  </a>
-</li>
-
-
+              <div class="recent-meta">
+                 Bill #{{ b.id }} • {{ b.bill_date.strftime("%d %b %Y %I:%M %p") }}
+              </div>
+            </a>
+          </li>
           {% else %}
           <li>No recent bills</li>
           {% endfor %}
         </ul>
       </div>
     </aside>
-
-
   </div>
 </div>
 <script type="application/json" id="products-data">
@@ -535,6 +530,7 @@ PRODUCTS_DATA.forEach(p => productMap[p.id] = p);
 let items = [];
 let selectedProduct = null;
 let lastSavedBillId = null;
+let selectedCustomerId = null;
 let activeSuggestion = null;
 let suggestionIndex = -1;
 let filteredSuggestions = [];
@@ -812,6 +808,20 @@ function bindRowEvents() {
   });
 }
 
+async function resolveCustomer(name, phone) {
+  if (!phone) return null;
+
+  const res = await fetch("/crm/api/customer", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ name, phone })
+  });
+
+  const data = await res.json();
+  return data.customer_id || null;
+}
+
+
 /* ===============================
    CLEAR / SAVE / PRINT
 ================================ */
@@ -827,12 +837,14 @@ document.getElementById("clearBtn").onclick = () => {
   lastSavedBillId = null;
   renderItems();
   document.getElementById("customerName").value = "";
-
+  document.getElementById("customerPhone").value = "";
+  selectedCustomerId = null;
 };
 
 
 document.getElementById("saveBtn").onclick = async () => {
 const customerName = document.getElementById("customerName").value.trim();
+const customerPhone = document.getElementById("customerPhone").value.trim();
 
 if (!items.length) {
   alert("Add items first");
@@ -845,20 +857,24 @@ if (!customerName) {
   return;
 }
 
-  const res = await fetch("{{ url_for('billing.create_bill') }}", {
+// 🔥 Resolve CRM customer
+selectedCustomerId = await resolveCustomer(customerName, customerPhone);
+
+const res = await fetch("{{ url_for('billing.create_bill') }}", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-  customer_name: customerName,
-  items
-})
-
+    customer_name: customerName,
+    customer_id: selectedCustomerId,
+    items
+    })
   });
 
   const data = await res.json();
   lastSavedBillId = data.bill_id;
   alert(`Bill #${data.bill_id} saved`);
   document.getElementById("customerName").value = "";
+  document.getElementById("customerPhone").value = "";
 
 };
 
