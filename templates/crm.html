@@ -1,0 +1,264 @@
+{% extends "base.html" %} {% block title %}CRM — SmartBill.AI{% endblock %} {%
+block content %}
+<style>
+  /* =========================
+   CRM CUSTOMER TABLE FIX
+========================= */
+
+  .card table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .card table th,
+  .card table td {
+    padding: 12px 14px;
+    vertical-align: middle;
+    text-align: center;
+  }
+
+  .card table th {
+    font-weight: 600;
+    background: rgba(255, 255, 255, 0.06);
+    text-transform: uppercase;
+    font-size: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* Left align customer name */
+  .card table td:first-child,
+  .card table th:first-child {
+    text-align: left;
+  }
+
+  /* Amount alignment */
+  .card table td:nth-child(4) {
+    text-align: right;
+    font-weight: 600;
+  }
+
+  /* Last visit */
+  .card table td:nth-child(5) {
+    white-space: nowrap;
+  }
+
+  /* View button cell */
+  .card table td:last-child {
+    text-align: center;
+  }
+
+  /* Zebra rows */
+  .card table tbody tr:nth-child(even) {
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  .crm-view-btn {
+    display: inline-block;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6366f1, #4f46e5);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .crm-view-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(79, 70, 229, 0.35);
+  }
+</style>
+<h1 class="page-title" style="margin-bottom: 20px">
+  👥 Customer Relationship Management
+</h1>
+
+<div class="page-wrap">
+  <div class="container">
+    <!-- =======================
+         CRM KPI CARDS
+    ======================== -->
+    <div class="kpi-grid">
+      <div class="kpi-card glass">
+        <div class="kpi-header">
+          <span class="kpi-icon">👤</span>
+          <h4>Total Customers</h4>
+        </div>
+        <div class="kpi-value" id="totalCustomers">0</div>
+        <div class="kpi-sub">All time</div>
+      </div>
+
+      <div class="kpi-card glass">
+        <div class="kpi-header">
+          <span class="kpi-icon">🔁</span>
+          <h4>Returning Customers</h4>
+        </div>
+        <div class="kpi-value" id="repeatCustomers">0</div>
+        <div class="kpi-sub">More than 1 bill</div>
+      </div>
+
+      <div class="kpi-card glass">
+        <div class="kpi-header">
+          <span class="kpi-icon">💎</span>
+          <h4>Top Customer</h4>
+        </div>
+        <div class="kpi-value top-customer" id="topCustomer">—</div>
+        <div class="kpi-sub">Highest spend</div>
+      </div>
+
+      <div class="kpi-card glass">
+        <div class="kpi-header">
+          <span class="kpi-icon">⏳</span>
+          <h4>Inactive Customers</h4>
+        </div>
+        <div class="kpi-value" id="inactiveCustomers">0</div>
+        <div class="kpi-sub">No purchase in 30 days</div>
+      </div>
+    </div>
+
+    <!-- =======================
+         CUSTOMER TABLE
+    ======================== -->
+    <div class="card" style="margin-bottom: 32px">
+      <h3 style="margin-bottom: 14px">📋 Customer List</h3>
+
+      <input
+        type="text"
+        id="customerSearch"
+        placeholder="Search customer by name or phone..."
+        style="margin-bottom: 12px; width: 100%"
+      />
+
+      <table>
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Total Bills</th>
+            <th>Total Spend</th>
+            <th>Last Visit</th>
+            <th>Customer Profile</th>
+          </tr>
+        </thead>
+
+        <tbody id="customerTable">
+          <!-- Example row -->
+          <tr>
+            <td>John Doe</td>
+            <td>9876543210</td>
+            <td>6</td>
+            <td>₹12,450</td>
+            <td>12 Feb 2026</td>
+            <td>
+              <a href="/crm/customer/1" class="crm-view-btn">View</a>
+            </td>
+          </tr>
+
+          <!-- No customer found row -->
+          <tr id="noCustomerRow" style="display: none">
+            <td colspan="6" style="text-align: center; opacity: 0.7">
+              No customer found
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- =======================
+         AI CRM INSIGHTS
+    ======================== -->
+    <div class="card ai-insights-card">
+      <h3>🤖 AI CRM Insight</h3>
+      <p id="crmInsight">
+        Customers who made repeat purchases spent 42% more on average. Consider
+        loyalty offers to increase retention.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- =======================
+     SEARCH SCRIPT
+======================== -->
+<script>
+  const searchInput = document.getElementById("customerSearch");
+  const table = document.getElementById("customerTable");
+  const noRow = document.getElementById("noCustomerRow");
+
+  searchInput.addEventListener("keyup", () => {
+    const query = searchInput.value.toLowerCase();
+    let visible = 0;
+
+    Array.from(table.rows).forEach((row) => {
+      if (row.id === "noCustomerRow") return;
+
+      const name = row.cells[0].innerText.toLowerCase();
+      const phone = row.cells[1].innerText.toLowerCase();
+
+      if (name.includes(query) || phone.includes(query)) {
+        row.style.display = "";
+        visible++;
+      } else {
+        row.style.display = "none";
+      }
+    });
+
+    noRow.style.display = visible === 0 ? "" : "none";
+  });
+</script>
+<script>
+  async function loadCRMMetrics() {
+    const res = await fetch("/crm/api/metrics");
+    const data = await res.json();
+
+    document.getElementById("totalCustomers").innerText = data.total_customers;
+    document.getElementById("repeatCustomers").innerText =
+      data.repeat_customers;
+    document.getElementById("topCustomer").innerText = data.top_customer;
+    document.getElementById("inactiveCustomers").innerText =
+      data.inactive_customers;
+  }
+
+  async function loadCustomers() {
+    const res = await fetch("/crm/api/customers");
+    const customers = await res.json();
+
+    const tbody = document.getElementById("customerTable");
+    tbody.innerHTML = "";
+
+    if (!customers.length) {
+      document.getElementById("noCustomerRow").style.display = "";
+      return;
+    }
+
+    customers.forEach((c) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+      <td>${c.name}</td>
+      <td>${c.phone || "-"}</td>
+      <td>${c.total_orders}</td>
+      <td>₹${c.total_spent.toFixed(2)}</td>
+      <td>${c.last_purchase ? new Date(c.last_purchase).toLocaleDateString() : "-"}</td>
+      <td><a href="/crm/customer/${c.id}" class="crm-view-btn">View</a>
+</td>
+    `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  loadCRMMetrics();
+  loadCustomers();
+</script>
+<script>
+  fetch("/crm/api/ai-insight")
+    .then((res) => res.json())
+    .then((data) => {
+      document.getElementById("crmInsight").innerText = data.insight;
+    })
+    .catch(() => {
+      document.getElementById("crmInsight").innerText =
+        "Unable to load CRM insights.";
+    });
+</script>
+
+{% endblock %}
