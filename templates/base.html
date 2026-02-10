@@ -66,6 +66,13 @@
         </a>
 
         <a
+          href="{{ url_for('crm.crm_page') }}"
+          class="{{ 'active' if request.path.startswith('/crm') else '' }}"
+        >
+          CRM
+        </a>
+
+        <a
           href="{{ url_for('ai_module.ai_dashboard') }}"
           class="{{ 'active' if request.path.startswith('/ai') else '' }}"
         >
