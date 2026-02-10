@@ -2,14 +2,23 @@ from flask import Flask, jsonify, render_template
 from flask_login import LoginManager, login_required, current_user
 
 # Models
-from models import db, User, Product, Bill, BillItem  # noqa: F401
+from models import (
+    db,
+    User,
+    Product,
+    Bill,
+    BillItem,
+    Customer,
+    CustomerActivity
+)
+ # noqa: F401
 
 # Blueprints
 from routes import auth, billing, reports, ai_module, settings
 from routes.product import bp as product_bp
 from routes.dashboard import dashboard_bp
-
 from flask import redirect, url_for
+from routes import crm
 
 import os
 import sys
@@ -52,6 +61,7 @@ app.register_blueprint(ai_module.ai_bp)
 app.register_blueprint(settings.settings_bp)
 app.register_blueprint(product_bp)
 app.register_blueprint(dashboard_bp)
+app.register_blueprint(crm.crm_bp)
 
 
 # ==========================
@@ -59,7 +69,7 @@ app.register_blueprint(dashboard_bp)
 # ==========================
 @app.route("/")
 def index():
-    return redirect(url_for("auth.login_page"))
+     return redirect(url_for("auth.login_page"))
 
 
 @app.route("/init-db", methods=["GET"])
@@ -114,6 +124,10 @@ def settings_home():
 # Run App
 # ==========================
 if __name__ == "__main__":
-    app.run(debug=False)
+    from dotenv import load_dotenv  #type: ignore
 
+    # Load local .env file for development only
+    if os.path.exists(".env"):
+        load_dotenv()
 
+    app.run(host="0.0.0.0", port=5000, debug=False)
