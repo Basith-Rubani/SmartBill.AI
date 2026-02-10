@@ -1,0 +1,294 @@
+{% extends "base.html" %} {% block title %}Customer Profile — SmartBill.AI{%
+endblock %} {% block content %}
+
+<h1 class="page-title" style="text-align: center; margin: 30px 0">
+  👤 Customer Profile
+</h1>
+
+<!-- =======================
+     CUSTOMER DETAILS (PROFILE STYLE)
+======================== -->
+<div style="display: flex; justify-content: center; margin-bottom: 40px">
+  <div
+    class="card"
+    style="
+      max-width: 800px;
+      width: 100%;
+      padding: 30px;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.08);
+      border-radius: 12px;
+      background: #fff;
+    "
+  >
+    <!-- VIEW MODE -->
+    <div id="customerView" style="display: grid; gap: 20px">
+      <div class="input-group">
+        <span class="input-icon">📝</span>
+        <input value="{{ customer.name }}" readonly />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">📞</span>
+        <input
+          value="{{ customer.phone or '' }}"
+          placeholder="Phone Number"
+          readonly
+        />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">📧</span>
+        <input
+          value="{{ customer.email or '' }}"
+          placeholder="Email id"
+          readonly
+        />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">📍</span>
+        <input
+          value="{{ customer.address or '' }}"
+          placeholder="Address"
+          readonly
+        />
+      </div>
+
+      <div style="text-align: center; margin-top: 10px">
+        <button id="editCustomerBtn" class="btn btn-save">Edit Customer</button>
+      </div>
+    </div>
+
+    <!-- EDIT MODE -->
+    <div id="customerEdit" style="display: none; gap: 20px">
+      <div class="input-group">
+        <span class="input-icon">📝</span>
+        <input
+          id="editName"
+          value="{{ customer.name }}"
+          placeholder="Full Name"
+        />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">📞</span>
+        <input
+          id="editPhone"
+          value="{{ customer.phone or '' }}"
+          placeholder="Phone Number"
+        />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">📧</span>
+        <input
+          id="editEmail"
+          value="{{ customer.email or '' }}"
+          placeholder="Email Address"
+        />
+      </div>
+
+      <div class="input-group">
+        <span class="input-icon">📍</span>
+        <input
+          id="editAddress"
+          value="{{ customer.address or '' }}"
+          placeholder="Street, City, ZIP..."
+        />
+      </div>
+
+      <div style="text-align: center; margin-top: 10px">
+        <button id="saveCustomerBtn" class="btn btn-save">Save Changes</button>
+        <button
+          id="cancelEditBtn"
+          class="btn btn-password"
+          style="margin-left: 10px"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- =======================
+     BILL HISTORY
+======================== -->
+<h1 style="text-align: center; margin: 40px 0 20px">📜 Bill History</h1>
+
+<div class="container">
+  <div class="card" style="padding: 20px">
+    <table style="width: 100%; border-collapse: collapse">
+      <thead>
+        <tr>
+          <th>Bill ID</th>
+          <th>Date</th>
+          <th>Amount</th>
+          <th style="text-align: center">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for bill in bills %}
+        <tr>
+          <td>#{{ bill.id }}</td>
+          <td>{{ bill.bill_date.strftime('%d %b %Y') }}</td>
+          <td>₹{{ "%.2f"|format(bill.total) }}</td>
+          <td style="text-align: center">
+            <a
+              href="{{ url_for('billing.view_bill', bill_id=bill.id) }}"
+              class="btn-view"
+              target="_blank"
+              >View</a
+            >
+          </td>
+        </tr>
+        {% else %}
+        <tr>
+          <td colspan="4" style="text-align: center; opacity: 0.7">
+            No bills found
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- =======================
+     SPENDING GRAPH
+======================== -->
+<h1 style="text-align: center; margin: 40px 0 20px">📊 Spending Trend</h1>
+
+<div class="container">
+  <div class="card">
+    <canvas id="spendingChart" height="120"></canvas>
+  </div>
+</div>
+
+<!-- =======================
+     SAFE DATA
+======================== -->
+<script id="bill-data" type="application/json">
+  {{ bill_chart_data | tojson }}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+  const editBtn = document.getElementById("editCustomerBtn");
+  const viewDiv = document.getElementById("customerView");
+  const editDiv = document.getElementById("customerEdit");
+
+  editBtn.onclick = () => {
+    viewDiv.style.display = "none";
+    editDiv.style.display = "grid";
+  };
+
+  cancelEditBtn.onclick = () => {
+    editDiv.style.display = "none";
+    viewDiv.style.display = "grid";
+  };
+
+  saveCustomerBtn.onclick = async () => {
+    const res = await fetch("/crm/api/customer/{{ customer.id }}", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: editName.value,
+        phone: editPhone.value,
+        email: editEmail.value,
+        address: editAddress.value,
+      }),
+    });
+    if (res.ok) location.reload();
+  };
+
+  const billData = JSON.parse(
+    document.getElementById("bill-data").textContent || "[]",
+  );
+
+  if (billData.length) {
+    const labels = billData.map((b) => new Date(b.date).toLocaleDateString());
+    const totals = billData.map((b) => b.total);
+
+    new Chart(document.getElementById("spendingChart"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: totals,
+            borderWidth: 2,
+            tension: 0.35,
+          },
+        ],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        responsive: true,
+      },
+    });
+  }
+</script>
+
+<style>
+  .input-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .input-icon {
+    font-size: 20px;
+    color: #0b2565;
+  }
+
+  .input-group input {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1.5px solid #0b2565;
+    flex: 1;
+    outline: none;
+  }
+
+  .input-group input:focus {
+    border-color: #1890ff;
+    box-shadow: 0 0 5px rgba(24, 144, 255, 0.5);
+  }
+
+  .input-group input[readonly] {
+    background: #f5f5f5;
+    cursor: not-allowed;
+  }
+
+  .btn-save {
+    padding: 12px 25px;
+    border-radius: 8px;
+    background: #0b2565;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-password {
+    padding: 12px 25px;
+    border-radius: 8px;
+    background: #ff4d4f;
+    color: #fff;
+    font-weight: 600;
+    border: none;
+    cursor: pointer;
+  }
+
+  .btn-view {
+    padding: 6px 14px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #2563eb, #4f46e5);
+    color: #fff;
+    font-weight: 600;
+    text-decoration: none;
+  }
+</style>
+
+{% endblock %}
