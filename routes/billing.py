@@ -1,7 +1,7 @@
 # routes/billing.py
 from flask import Blueprint, render_template, request, jsonify, send_file
 from flask_login import login_required, current_user
-from models import db, Product, Bill, BillItem
+from models import db, Product, Bill, BillItem, Customer
 from datetime import datetime
 from sqlalchemy import func
 from io import BytesIO
@@ -17,7 +17,24 @@ except Exception:
 
 bp = Blueprint("billing", __name__, url_prefix="/billing")
 
-DEFAULT_GST = 0.18 # fallback GST if product doesn't have gst field
+DEFAULT_GST = 0.18 
+
+# ---------------------------------------------------
+# CRM HELPER (Billing → CRM integration)
+# ---------------------------------------------------
+def update_customer_after_bill(customer_id, bill_total):
+    if not customer_id:
+        return
+
+    customer = Customer.query.get(customer_id)
+    if not customer:
+        return
+
+    customer.total_orders += 1
+    customer.total_spent += float(bill_total)
+    customer.last_purchase = datetime.utcnow()
+
+    db.session.commit()
 
 # ---------------- Billing page (render) ----------------
 @bp.route("/", methods=["GET"])
@@ -26,7 +43,6 @@ def billing_home():
     products = Product.query.order_by(Product.name).all()
     product_list = []
     for p in products:
-        # read product.gst if available, else default
         gst = getattr(p, "gst", None)
         product_list.append({
             "id": p.id,
@@ -40,7 +56,7 @@ def billing_home():
     return render_template("billing.html", products=product_list, bills=bills, user=current_user)
 
 
-# ---------------- Product lookup (AJAX) ----------------
+# ---------------- Product lookup ----------------
 @bp.route("/product/<int:product_id>", methods=["GET"])
 @login_required
 def get_product(product_id):
@@ -56,21 +72,13 @@ def get_product(product_id):
     })
 
 
-# ---------------- Create bill (AJAX) ----------------
+# ---------------- Create bill ----------------
 @bp.route("/create", methods=["POST"])
 @login_required
 def create_bill():
-    """
-    Payload:
-    {
-      "customer_name": "John",
-      "items": [ {"id": 1, "quantity": 2}, ... ]
-    }
-
-    Returns JSON with bill_id, subtotal, gst, total.
-    """
     data = request.get_json() or {}
     items = data.get("items") or []
+    customer_id = data.get("customer_id")
     if not isinstance(items, list) or len(items) == 0:
         return jsonify({"error": "No items provided"}), 400
 
@@ -109,7 +117,7 @@ def create_bill():
     total = round(subtotal + gst_amount, 2)
 
     # create bill
-    bill = Bill(customer_name=data.get("customer_name", "Walk-in Customer"),
+    bill = Bill(customer_name=data.get("customer_name", "Walk-in Customer"), customer_id=customer_id,
                 bill_date=datetime.utcnow(),
                 total=total)
     db.session.add(bill)
@@ -124,6 +132,9 @@ def create_bill():
         product.stock -= qty
         db.session.add(bi)
     db.session.commit()
+
+     # 🔥 CRM UPDATE
+    update_customer_after_bill(customer_id, total)
 
     return jsonify({
         "message": "Bill created",
