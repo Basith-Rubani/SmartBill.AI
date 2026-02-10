@@ -66,6 +66,24 @@ AI-generated business insights
 
 Data-driven performance analysis
 
+👥 Customer Relationship Management (CRM) 
+
+Automatic customer creation from bills
+
+Customer profile pages with:
+
+Total orders
+
+Total spending
+
+Last purchase date
+
+Bill history per customer
+
+Top & inactive customer tracking
+
+Real-time CRM insights (data-driven, not static)
+
 🤖 AI Assistant
 
 Interactive chat interface
