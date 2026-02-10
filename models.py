@@ -42,6 +42,14 @@ class Bill(db.Model):
     bill_date = db.Column(db.DateTime, default=datetime.utcnow)
     total = db.Column(db.Float, default=0.0)
 
+    customer_id = db.Column(
+    db.Integer,
+    db.ForeignKey("customers.id"),
+    nullable=True
+)
+    
+    customer = db.relationship("Customer", backref="bills")
+
     def __repr__(self):
         return f"<Bill {self.id}>"
 
@@ -75,3 +83,43 @@ class BillItem(db.Model):
 
     def __repr__(self):
         return f"<BillItem bill={self.bill_id} product={self.product_id}>"
+    
+
+class Customer(db.Model):
+    __tablename__ = "customers"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    name = db.Column(db.String(120), nullable=False)
+    phone = db.Column(db.String(20), unique=True)
+    email = db.Column(db.String(120))
+    address = db.Column(db.Text)
+
+    total_spent = db.Column(db.Float, default=0)
+    total_orders = db.Column(db.Integer, default=0)
+    last_purchase = db.Column(db.DateTime)
+
+    notes = db.Column(db.Text)
+
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "phone": self.phone,
+            "email": self.email,
+            "total_spent": self.total_spent,
+            "total_orders": self.total_orders,
+            "last_purchase": self.last_purchase.isoformat() if self.last_purchase else None,
+        }
+
+
+class CustomerActivity(db.Model):
+    __tablename__ = "customer_activity"
+
+    id = db.Column(db.Integer, primary_key=True)
+    customer_id = db.Column(db.Integer, db.ForeignKey("customers.id"))
+    action = db.Column(db.String(100))
+    reference_id = db.Column(db.Integer)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow)
