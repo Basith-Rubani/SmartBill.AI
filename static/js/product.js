@@ -157,3 +157,57 @@ document.addEventListener("DOMContentLoaded", () => {
   sortSelect.onchange = loadProducts;
   loadProducts();
 });
+
+// ---------- Import Modal Logic ----------
+const btnImport = document.getElementById("btnImport");
+const importModal = document.getElementById("importModal");
+const btnImportCancel = document.getElementById("btnImportCancel");
+const btnUploadExcel = document.getElementById("btnUploadExcel");
+const btnDownloadTemplate = document.getElementById("btnDownloadTemplate");
+const excelFile = document.getElementById("excelFile");
+
+// Open modal
+btnImport.addEventListener("click", () => {
+  importModal.classList.add("open");
+});
+
+// Close modal
+btnImportCancel.addEventListener("click", () => {
+  importModal.classList.remove("open");
+});
+
+// Download Template
+btnDownloadTemplate.addEventListener("click", () => {
+  window.location.href = "/products/api/template";
+});
+
+// Trigger file select
+btnUploadExcel.addEventListener("click", () => {
+  excelFile.click();
+});
+
+// Handle file upload
+excelFile.addEventListener("change", async () => {
+  const file = excelFile.files[0];
+  if (!file) return;
+
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await fetch("/products/api/import", {
+    method: "POST",
+    body: formData,
+  });
+
+  const data = await res.json();
+
+  if (res.ok) {
+    alert(`Import Completed\nAdded: ${data.added}\nUpdated: ${data.updated}`);
+    loadProducts();
+  } else {
+    alert(data.error || "Import failed");
+  }
+
+  excelFile.value = "";
+  importModal.classList.remove("open");
+});
