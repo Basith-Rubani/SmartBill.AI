@@ -156,6 +156,9 @@ endblock %} {% block content %}
       </select>
 
       <button id="btnAdd" class="btn">+ Add Product</button>
+
+      <input type="file" id="excelFile" accept=".xlsx" style="display: none" />
+      <button id="btnImport" class="btn">Import Excel</button>
     </div>
 
     <!-- PRODUCTS TABLE -->
@@ -196,6 +199,23 @@ endblock %} {% block content %}
     <div style="display: flex; justify-content: flex-end; gap: 8px">
       <button id="modalCancel" class="btn secondary">Cancel</button>
       <button id="modalSave" class="btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- IMPORT MODAL -->
+<div id="importModal" class="modal">
+  <div class="modal-card" style="width: 420px">
+    <h3 style="margin-bottom: 15px">Import Products</h3>
+
+    <div style="display: flex; flex-direction: column; gap: 12px">
+      <button id="btnDownloadTemplate" class="btn secondary">
+        Download Sample Template
+      </button>
+
+      <button id="btnUploadExcel" class="btn">Upload Excel File</button>
+
+      <button id="btnImportCancel" class="btn secondary">Cancel</button>
     </div>
   </div>
 </div>
