@@ -195,3 +195,4 @@ whatthepatch==1.0.7
 yapf==0.43.0
 yarl==1.22.0
 zipp==3.23.0
+openpyxl==3.1.2
