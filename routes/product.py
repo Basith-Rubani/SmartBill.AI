@@ -1,8 +1,14 @@
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required
 from models import db, Product
+import io
+import openpyxl
+import re
+    
+from flask import send_file
+import tempfile
 
-bp = Blueprint("product", __name__, url_prefix="/products")  
+bp = Blueprint("product", __name__, url_prefix="/products")  # ✅ fixed
 
 
 # ---------- Helpers ----------
@@ -161,3 +167,144 @@ def api_delete(product_id):
 
     return jsonify({"message": "Deleted"})
 
+@bp.route("/api/import", methods=["POST"])
+@login_required
+def api_import_excel():
+    if "file" not in request.files:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    file = request.files["file"]
+
+    if not file.filename.endswith(".xlsx"):
+        return jsonify({"error": "Only .xlsx files supported"}), 400
+
+    try:
+        in_memory = io.BytesIO(file.read())
+        workbook = openpyxl.load_workbook(in_memory)
+        sheet = workbook.active
+
+        rows = list(sheet.iter_rows(values_only=True))
+        if not rows:
+            return jsonify({"error": "Excel file is empty"}), 400
+
+        headers = [str(h).strip().lower() for h in rows[0]]
+
+        # Auto detect columns
+        def find_col(possible_names):
+            for name in possible_names:
+                if name in headers:
+                    return headers.index(name)
+            return None
+
+        col_name = find_col(["name", "product", "product name", "item"])
+        col_category = find_col(["category"])
+        col_price = find_col(["price", "rate", "amount"])
+        col_stock = find_col(["stock", "qty", "quantity"])
+        col_gst = find_col(["gst", "tax"])
+
+        if col_name is None:
+            return jsonify({"error": "Product name column not found"}), 400
+
+        added = 0
+        updated = 0
+
+        for row in rows[1:]:
+            if not row[col_name]:
+                continue
+
+            name = str(row[col_name]).strip()
+
+            # Safe parsing function
+            def parse_float(val):
+                if val is None:
+                    return 0.0
+                if isinstance(val, (int, float)):
+                    return float(val)
+                val = re.sub(r"[^\d.]", "", str(val))
+                return float(val) if val else 0.0
+
+            def parse_int(val):
+                if val is None:
+                    return 0
+                if isinstance(val, int):
+                    return val
+                val = re.sub(r"[^\d]", "", str(val))
+                return int(val) if val else 0
+
+            category = (
+                str(row[col_category]).strip()
+                if col_category is not None and row[col_category]
+                else ""
+            )
+
+            price = (
+                parse_float(row[col_price])
+                if col_price is not None
+                else 0
+            )
+
+            stock = (
+                parse_int(row[col_stock])
+                if col_stock is not None
+                else 0
+            )
+
+            gst = (
+                parse_float(row[col_gst])
+                if col_gst is not None
+                else 0
+            )
+
+            # DUPLICATE CHECK (by name)
+            existing = Product.query.filter(
+                Product.name.ilike(name)
+            ).first()
+
+            if existing:
+                existing.category = category
+                existing.price = price
+                existing.stock = stock
+                if hasattr(existing, "gst"):
+                    existing.gst = gst
+                updated += 1
+            else:
+                new_product = Product(
+                    name=name,
+                    category=category,
+                    price=price,
+                    stock=stock,
+                )
+                if hasattr(new_product, "gst"):
+                    new_product.gst = gst
+                db.session.add(new_product)
+                added += 1
+
+        db.session.commit()
+
+        return jsonify({
+            "message": f"Import complete",
+            "added": added,
+            "updated": updated
+        })
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@bp.route("/api/template", methods=["GET"])
+@login_required
+def download_template():
+    workbook = openpyxl.Workbook()
+    sheet = workbook.active
+
+    sheet.append(["name", "category", "price", "stock", "gst"])
+    sheet.append(["Sample Product", "General", 100, 50, 18])
+
+    temp = tempfile.NamedTemporaryFile(delete=False, suffix=".xlsx")
+    workbook.save(temp.name)
+
+    return send_file(
+        temp.name,
+        as_attachment=True,
+        download_name="product_import_template.xlsx"
+    )
